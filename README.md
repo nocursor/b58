@@ -267,7 +267,7 @@ Please pay attention to the following at all times to avoid mistakes and self-in
 * Pay attention to your source format when using integers. You will lose leading zeroes if you rely on anything that tries to convert to the smallest representation, such as `:binary.encode_unsigned/2`
 * Decide up front whether you will pass version or unversioned data. Use the `version` prefixed functions for dealing with cases where you want things to include a version by default.
 
-See the [API]([https://hexdocs.pm/basefiftyeight](https://hexdocs.pm/basefiftyeight)) docs for more examples.
+See the [API]([https://hexdocs.pm/basefiftyeight/B58.html)) docs for more examples.
 
 ## Installation
 
@@ -281,7 +281,7 @@ def deps do
 end
 ```
 
-API Documentation can be found at [https://hexdocs.pm/basefiftyeight](https://hexdocs.pm/basefiftyeight).
+API Documentation can be found at [https://hexdocs.pm/basefiftyeight/B58.html](https://hexdocs.pm/basefiftyeight/B58.html).
 
 ## Why
 
