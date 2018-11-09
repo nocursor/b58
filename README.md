@@ -244,7 +244,7 @@ Base.decode16!("f54a5851e9372b87810a8e60cdd2e7cfd80b6e31", case: :lower) |> B58.
 ```
 
 Finally, suppose you have decoded some data and are wondering why it doesn't look your friendly internet example. 
-The problem is often format related, for example perhaps the final answer was in hex. We always keep things in plain Elixir binaries (UTF-8)
+The problem is often format related, for example perhaps the final answer was in hex. We always keep things in plain Elixir binaries:
 
 ```elixir
 # Given some address like this, we get this.
@@ -260,7 +260,7 @@ B58.decode58!("16UjcYNBG9GTK4uq2f7yYEbuifqCzoLMGS") |> Base.encode16(case: :lowe
 
 Please pay attention to the following at all times to avoid mistakes and self-induced pain:
 
-* Know your source data encoding. This is usually UTF-8, Latin-1, Base16, Base32, or Base64 these days
+* Know your source data encoding. This is usually UTF-8, Latin-1, Base2, Base16, Base32, or Base64 these days
 * Convert your source data to a universal input format, using the Elixir `Base` module and `decode` functions to decode it typically.
 * Use the correct alphabet for encoding and decoding. You cannot encode in one alphabet and decode in another properly.
 * Know your intended destination format when checking your results. If your result is another format, again typically use the Elixir `Base` module and `encode` functions to encode it.
