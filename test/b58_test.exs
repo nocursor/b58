@@ -1005,14 +1005,14 @@ defmodule B58Test do
   end
 
   test "encode58/2 handles encodes leading zeroes for the ripple alphabet" do
-    assert B58.encode58(<<0>>, alphabet: :ripple) == "1"
-    assert B58.encode58(<<0, 0, 0, "hello world">>, alphabet: :ripple) == "111StVrDLaUATiyKyV"
-    assert B58.encode58(<<0, 0, 0>>, alphabet: :ripple) == "111"
+    assert B58.encode58(<<0>>, alphabet: :ripple) == "r"
+    assert B58.encode58(<<0, 0, 0, "hello world">>, alphabet: :ripple) == "rrrStVrDLaUATiyKyV"
+    assert B58.encode58(<<0, 0, 0>>, alphabet: :ripple) == "rrr"
   end
 
   test "encode58_check!/3 accepts only unsigned single byte integers using the ripple alphabet" do
-    assert B58.encode58_check!("a", <<0>>, alphabet: :ripple) == "1Ust945b"
-    assert B58.encode58_check!("a", 0, alphabet: :ripple) == "1Ust945b"
+    assert B58.encode58_check!("a", <<0>>, alphabet: :ripple) == "rUst945b"
+    assert B58.encode58_check!("a", 0, alphabet: :ripple) == "rUst945b"
     assert B58.encode58_check!("a", <<1>>, alphabet: :ripple) == "gqkAoXD"
     assert B58.encode58_check!("a", 1, alphabet: :ripple) == "gqkAoXD"
     assert B58.encode58_check!("a", <<2>>, alphabet: :ripple) == "pBkJb6jW"
@@ -1021,53 +1021,65 @@ defmodule B58Test do
     assert B58.encode58_check!("a", 255, alphabet: :ripple) == "sUwAsRMUe"
     assert B58.encode58_check!(<<>>, <<2>>, alphabet: :ripple) == "NF5sKP"
     assert B58.encode58_check!(<<>>, 2, alphabet: :ripple) == "NF5sKP"
+
     assert_raise ArgumentError, fn ->
       B58.encode58_check!("a", 256, alphabet: :ripple)
     end
+
     assert_raise ArgumentError, fn ->
       B58.encode58_check!("a", -1, alphabet: :ripple)
     end
+
     assert_raise ArgumentError, fn ->
       B58.encode58_check!("a", <<1, 0>>, alphabet: :ripple)
     end
   end
 
   test "encode58_check!/3 Base58Check encodes strings according to the ripple alphabet" do
-    assert B58.encode58_check!("hello", 0, alphabet: :ripple) == "1pLnBnyq1CfvAb"
+    assert B58.encode58_check!("hello", 0, alphabet: :ripple) == "rpLnBnyq1CfvAb"
     assert B58.encode58_check!("hello world", 1, alphabet: :ripple) == "BnoSHny7DQS9XAzogicWP"
     assert B58.encode58_check!("Hello World", 255, alphabet: :ripple) == "YXMkDYBSTNWVuNpvQ6Qr8c"
-    assert B58.encode58_check!(<<>>, 0, alphabet: :ripple) == "1W6hb6"
+    assert B58.encode58_check!(<<>>, 0, alphabet: :ripple) == "rW6hb6"
   end
 
   test "encode58_check/3 Base58Check encodes strings according to the ripple alphabet" do
-    assert B58.encode58_check("hello", 0, alphabet: :ripple) == {:ok, "1pLnBnyq1CfvAb"}
-    assert B58.encode58_check("hello world", 1, alphabet: :ripple) == {:ok, "BnoSHny7DQS9XAzogicWP"}
-    assert B58.encode58_check("Hello World", 255, alphabet: :ripple) == {:ok, "YXMkDYBSTNWVuNpvQ6Qr8c"}
-    assert B58.encode58_check(<<>>, 0, alphabet: :ripple) == {:ok, "1W6hb6"}
+    assert B58.encode58_check("hello", 0, alphabet: :ripple) == {:ok, "rpLnBnyq1CfvAb"}
+
+    assert B58.encode58_check("hello world", 1, alphabet: :ripple) ==
+             {:ok, "BnoSHny7DQS9XAzogicWP"}
+
+    assert B58.encode58_check("Hello World", 255, alphabet: :ripple) ==
+             {:ok, "YXMkDYBSTNWVuNpvQ6Qr8c"}
+
+    assert B58.encode58_check(<<>>, 0, alphabet: :ripple) == {:ok, "rW6hb6"}
   end
 
   test "encode58_check!/3 Base58Check encodes sha-256 strings according to the ripple alphabet" do
     # From https://github.com/multiformats/multihash
     assert "12209CBC07C3F991725836A3AA2A581CA2029198AA420B9D99BC0E131D9F3E2CBE47"
            |> Base.decode16!()
-           |> B58.encode58_check!(0, alphabet: :ripple) == "1sgXk93a69FwFWsu4eGwHDq78YHo3croSCH2jVDuzPt5SokA6zzeK"
+           |> B58.encode58_check!(0, alphabet: :ripple) ==
+             "rsgXk93a69FwFWsu4eGwHDq78YHo3croSCH2jVDuzPt5SokA6zzeK"
   end
 
   test "encode58_check!/3 Base58Check encodes a RIPEMD-160 hash using the ripple alphabet" do
     # ex per: https://en.bitcoin.it/wiki/Technical_background_of_version_1_Bitcoin_addresses
     assert "f54a5851e9372b87810a8e60cdd2e7cfd80b6e31"
            |> Base.decode16!(case: :lower)
-           |> B58.encode58_check!(0, alphabet: :ripple) == "1PMyc2c8J2SqAAJqj2AXBNi8L1ZfRkX7w1"
+           |> B58.encode58_check!(0, alphabet: :ripple) == "rPMyc2c8J2SqAAJqj2AXBNi8L1ZfRkX7w1"
   end
 
   test "encode58_check!/2 handles Base58 encoding leading zeroes using the ripple alphabet" do
-    assert B58.encode58_check!(<<0>>, 0, alphabet: :ripple) == "11pedBaq"
-    assert B58.encode58_check!(<<0, 0, 0, "hello world">>, 0, alphabet: :ripple) == "1111svQBfBaMiGQZ2xUiokgxh"
-    assert B58.encode58_check!(<<0, 0, 0>>, 0, alphabet: :ripple) ==  "1111hbdQd2"
+    assert B58.encode58_check!(<<0>>, 0, alphabet: :ripple) == "rrpedBaq"
+
+    assert B58.encode58_check!(<<0, 0, 0, "hello world">>, 0, alphabet: :ripple) ==
+             "rrrrsvQBfBaMiGQZ2xUiokgxh"
+
+    assert B58.encode58_check!(<<0, 0, 0>>, 0, alphabet: :ripple) == "rrrrhbdQd2"
   end
 
   test "version_encode58_check!/3 accepts unsigned single byte integer versions using the ripple alphabet" do
-    assert B58.version_encode58_check!(<<0, "a">>, alphabet: :ripple) == "1Ust945b"
+    assert B58.version_encode58_check!(<<0, "a">>, alphabet: :ripple) == "rUst945b"
     assert B58.version_encode58_check!(<<1, "a">>, alphabet: :ripple) == "gqkAoXD"
     assert B58.version_encode58_check!(<<2, "a">>, alphabet: :ripple) == "pBkJb6jW"
     assert B58.version_encode58_check!(<<255, "a">>, alphabet: :ripple) == "sUwAsRMUe"
@@ -1075,31 +1087,46 @@ defmodule B58Test do
   end
 
   test "version_encode58_check/3 Base58Check encodes strings according to the ripple alphabet" do
-    assert B58.version_encode58_check(<<0, "hello">>, alphabet: :ripple) == {:ok, "1pLnBnyq1CfvAb"}
-    assert B58.version_encode58_check(<<1, "hello world">>, alphabet: :ripple) == {:ok, "BnoSHny7DQS9XAzogicWP"}
-    assert B58.version_encode58_check(<<255, "Hello World">>, alphabet: :ripple) == {:ok, "YXMkDYBSTNWVuNpvQ6Qr8c"}
-    assert B58.version_encode58_check(<<0>>, alphabet: :ripple) == {:ok, "1W6hb6"}
+    assert B58.version_encode58_check(<<0, "hello">>, alphabet: :ripple) ==
+             {:ok, "rpLnBnyq1CfvAb"}
+
+    assert B58.version_encode58_check(<<1, "hello world">>, alphabet: :ripple) ==
+             {:ok, "BnoSHny7DQS9XAzogicWP"}
+
+    assert B58.version_encode58_check(<<255, "Hello World">>, alphabet: :ripple) ==
+             {:ok, "YXMkDYBSTNWVuNpvQ6Qr8c"}
+
+    assert B58.version_encode58_check(<<0>>, alphabet: :ripple) == {:ok, "rW6hb6"}
   end
 
   test "version_encode58_check!/3 Base58Check encodes strings according to the ripple alphabet" do
-    assert B58.version_encode58_check!(<<0, "hello">>, alphabet: :ripple) == "1pLnBnyq1CfvAb"
-    assert B58.version_encode58_check!(<<1, "hello world">>, alphabet: :ripple) == "BnoSHny7DQS9XAzogicWP"
-    assert B58.version_encode58_check!(<<255, "Hello World">>, alphabet: :ripple) == "YXMkDYBSTNWVuNpvQ6Qr8c"
-    assert B58.version_encode58_check!(<<0>>, alphabet: :ripple) == "1W6hb6"
+    assert B58.version_encode58_check!(<<0, "hello">>, alphabet: :ripple) == "rpLnBnyq1CfvAb"
+
+    assert B58.version_encode58_check!(<<1, "hello world">>, alphabet: :ripple) ==
+             "BnoSHny7DQS9XAzogicWP"
+
+    assert B58.version_encode58_check!(<<255, "Hello World">>, alphabet: :ripple) ==
+             "YXMkDYBSTNWVuNpvQ6Qr8c"
+
+    assert B58.version_encode58_check!(<<0>>, alphabet: :ripple) == "rW6hb6"
   end
 
   test "version_encode58_check!/2 Base58Check encodes a versioned RIPEMD-160 hash using the ripple alphabet" do
     # ex per: https://en.bitcoin.it/wiki/Technical_background_of_version_1_Bitcoin_addresses
-    assert 0xf54a5851e9372b87810a8e60cdd2e7cfd80b6e31
+    assert 0xF54A5851E9372B87810A8E60CDD2E7CFD80B6E31
            |> :binary.encode_unsigned()
            |> B58.version_binary(0)
-           |> B58.version_encode58_check!(alphabet: :ripple) == "1PMyc2c8J2SqAAJqj2AXBNi8L1ZfRkX7w1"
+           |> B58.version_encode58_check!(alphabet: :ripple) ==
+             "rPMyc2c8J2SqAAJqj2AXBNi8L1ZfRkX7w1"
   end
 
   test "version_encode58_check!/2 handles Base58 encoding leading zeroes using the ripple alphabet" do
-    assert B58.version_encode58_check!(<<0, 0>>, alphabet: :ripple) == "11pedBaq"
-    assert B58.version_encode58_check!(<<0, 0, 0, 0, "hello world">>, alphabet: :ripple) == "1111svQBfBaMiGQZ2xUiokgxh"
-    assert B58.version_encode58_check!(<<0, 0, 0, 0>>, alphabet: :ripple) == "1111hbdQd2"
+    assert B58.version_encode58_check!(<<0, 0>>, alphabet: :ripple) == "rrpedBaq"
+
+    assert B58.version_encode58_check!(<<0, 0, 0, 0, "hello world">>, alphabet: :ripple) ==
+             "rrrrsvQBfBaMiGQZ2xUiokgxh"
+
+    assert B58.version_encode58_check!(<<0, 0, 0, 0>>, alphabet: :ripple) == "rrrrhbdQd2"
   end
 
   test "decode58!/2 decodes Base58 encoded binaries using the ripple alphabet" do
@@ -1110,40 +1137,46 @@ defmodule B58Test do
   end
 
   test "decode58!/2 handles Base58 encoded with leading zeroes using the ripple alphabet" do
-    assert B58.decode58!("1", alphabet: :ripple) == <<0>>
-    assert B58.decode58!("111StVrDLaUATiyKyV", alphabet: :ripple) == <<0, 0, 0, "hello world">>
-    assert B58.decode58!("111", alphabet: :ripple) == <<0, 0, 0>>
+    assert B58.decode58!("r", alphabet: :ripple) == <<0>>
+    assert B58.decode58!("rrr", alphabet: :ripple) == <<0, 0, 0>>
+    assert B58.decode58!("rrrStVrDLaUATiyKyV", alphabet: :ripple) == <<0, 0, 0, "hello world">>
   end
 
   test "decode58!/2 Base58 decodes sha-256 strings using the ripple alphabet" do
     # From https://github.com/multiformats/multihash
     assert "QmYt7ch5TUbbCVSD4KvtQqiCyezPP8EvNssAEmutA9PBBk"
            |> B58.decode58!(alphabet: :ripple)
-           |> Base.encode16() == "12209CBC07C3F991725836A3AA2A581CA2029198AA420B9D99BC0E131D9F3E2CBE47"
+           |> Base.encode16() ==
+             "12209CBC07C3F991725836A3AA2A581CA2029198AA420B9D99BC0E131D9F3E2CBE47"
   end
 
   test "decode58!/2 Base58 handles invalid binaries when using the ripple alphabet" do
-    #invalid character
+    # invalid character
     assert_raise ArgumentError, fn ->
       B58.decode58!("~", alphabet: :ripple)
     end
-    #invalid leading character
+
+    # invalid leading character
     assert_raise ArgumentError, fn ->
       B58.decode58!("~U83eVZg", alphabet: :ripple)
     end
-    #invalid trailing character
+
+    # invalid trailing character
     assert_raise ArgumentError, fn ->
       B58.decode58!("U83eVZg^", alphabet: :ripple)
     end
-    #invalid character mid string
+
+    # invalid character mid string
     assert_raise ArgumentError, fn ->
       B58.decode58!("U83%VZg", alphabet: :ripple)
     end
-    #invalid character excluded from alphabet due to clarity
+
+    # invalid character excluded from alphabet due to clarity
     assert_raise ArgumentError, fn ->
       B58.decode58!("O83eVZg", alphabet: :ripple)
     end
-    #base16 encoded string
+
+    # base16 encoded string
     assert_raise ArgumentError, fn ->
       "12209CBC07C3F991725836A3AA2A581CA2029198AA420B9D99BC0E131D9F3E2CBE47"
       |> B58.decode58!(alphabet: :ripple)
@@ -1151,63 +1184,77 @@ defmodule B58Test do
   end
 
   test "decode58/2 Base58 handles invalid binaries when using the ripple alphabet" do
-    #invalid character
+    # invalid character
     {:error, _} = B58.decode58("~", alphabet: :ripple)
-    #invalid leading character
+    # invalid leading character
     {:error, _} = B58.decode58("~U83eVZg", alphabet: :ripple)
-    #invalid trailing character
+    # invalid trailing character
     {:error, _} = B58.decode58("U83eVZg^", alphabet: :ripple)
-    #invalid character mid string
+    # invalid character mid string
     {:error, _} = B58.decode58("U83%VZ", alphabet: :ripple)
-    #invalid character excluded from alphabet due to clarity
+    # invalid character excluded from alphabet due to clarity
     {:error, _} = B58.decode58("O83eVZg", alphabet: :ripple)
-    #base16 encoded string
-    {:error, _} = "12209CBC07C3F991725836A3AA2A581CA2029198AA420B9D99BC0E131D9F3E2CBE47"
-                  |> B58.decode58(alphabet: :ripple)
+    # base16 encoded string
+    {:error, _} =
+      "12209CBC07C3F991725836A3AA2A581CA2029198AA420B9D99BC0E131D9F3E2CBE47"
+      |> B58.decode58(alphabet: :ripple)
   end
 
   test "decode58_check!/2 decodes Base58Check encoded binaries using the ripple alphabet" do
-    assert B58.decode58_check!("1pLnBnyq1CfvAb", alphabet: :ripple) == {"hello", <<0>>}
-    assert B58.decode58_check!("BnoSHny7DQS9XAzogicWP", alphabet: :ripple) == {"hello world", <<1>>}
-    assert B58.decode58_check!("YXMkDYBSTNWVuNpvQ6Qr8c", alphabet: :ripple) == {"Hello World", <<255>>}
-    assert B58.decode58_check!("1W6hb6", alphabet: :ripple) == {<<>>, <<0>>}
+    assert B58.decode58_check!("rpLnBnyq1CfvAb", alphabet: :ripple) == {"hello", <<0>>}
+
+    assert B58.decode58_check!("BnoSHny7DQS9XAzogicWP", alphabet: :ripple) ==
+             {"hello world", <<1>>}
+
+    assert B58.decode58_check!("YXMkDYBSTNWVuNpvQ6Qr8c", alphabet: :ripple) ==
+             {"Hello World", <<255>>}
+
+    assert B58.decode58_check!("rW6hb6", alphabet: :ripple) == {<<>>, <<0>>}
   end
 
   test "decode58_check/2 decodes Base58Check encoded binaries using the ripple alphabet" do
-    assert B58.decode58_check("1pLnBnyq1CfvAb", alphabet: :ripple) == {:ok, {"hello", <<0>>}}
-    assert B58.decode58_check("BnoSHny7DQS9XAzogicWP", alphabet: :ripple) == {:ok, {"hello world", <<1>>}}
-    assert B58.decode58_check("YXMkDYBSTNWVuNpvQ6Qr8c", alphabet: :ripple) == {:ok, {"Hello World", <<255>>}}
-    assert B58.decode58_check("1W6hb6", alphabet: :ripple) == {:ok, {<<>>, <<0>>}}
+    assert B58.decode58_check("rpLnBnyq1CfvAb", alphabet: :ripple) == {:ok, {"hello", <<0>>}}
+
+    assert B58.decode58_check("BnoSHny7DQS9XAzogicWP", alphabet: :ripple) ==
+             {:ok, {"hello world", <<1>>}}
+
+    assert B58.decode58_check("YXMkDYBSTNWVuNpvQ6Qr8c", alphabet: :ripple) ==
+             {:ok, {"Hello World", <<255>>}}
+
+    assert B58.decode58_check("rW6hb6", alphabet: :ripple) == {:ok, {<<>>, <<0>>}}
   end
 
   test "decode58_check!/2 Base58Check decodes to a RIPEMD-160 encoded hash using the ripple alphabet" do
     # ex per: https://en.bitcoin.it/wiki/Technical_background_of_version_1_Bitcoin_addresses
-    {hash_bin, version} = "1PMyc2c8J2SqAAJqj2AXBNi8L1ZfRkX7w1"
-                          |> B58.decode58_check!(alphabet: :ripple)
+    {hash_bin, version} =
+      "rPMyc2c8J2SqAAJqj2AXBNi8L1ZfRkX7w1"
+      |> B58.decode58_check!(alphabet: :ripple)
+
     assert version == <<0>>
+
     assert hash_bin
            |> Base.encode16(case: :lower) == "f54a5851e9372b87810a8e60cdd2e7cfd80b6e31"
   end
 
   test "decode58_check!/2 handles binaries with invalid checksums encoded using the ripple alphabet" do
-    #corrupt last byte
+    # corrupt last byte
     assert_raise ArgumentError, fn -> B58.decode58_check!("1pLnBnyq1CfvAq", alphabet: :ripple) end
-    #corrupt first byte
+    # corrupt first byte
     assert_raise ArgumentError, fn -> B58.decode58_check!("2pLnBnyq1CfvAb", alphabet: :ripple) end
-    #corrupt middle byte
+    # corrupt middle byte
     assert_raise ArgumentError, fn -> B58.decode58_check!("1pLnBnqq1CfvAb", alphabet: :ripple) end
-    #corrupted empty
+    # corrupted empty
     assert_raise ArgumentError, fn -> B58.decode58_check!("1B6hb6", alphabet: :ripple) end
   end
 
   test "decode58_check/2 handles binaries with invalid checksums encoded using the ripple alphabet" do
-    #corrupt last byte
+    # corrupt last byte
     {:error, _} = B58.decode58_check("1pLnBnyq1CfvAq", alphabet: :ripple)
-    #corrupt first byte
+    # corrupt first byte
     {:error, _} = B58.decode58_check("2pLnBnyq1CfvAb", alphabet: :ripple)
-    #corrupt middle byte
+    # corrupt middle byte
     {:error, _} = B58.decode58_check("1pLnBnqq1CfvAb", alphabet: :ripple)
-    #corrupted empty
+    # corrupted empty
     {:error, _} = B58.decode58_check("1W6bb6", alphabet: :ripple)
   end
 
@@ -1215,13 +1262,17 @@ defmodule B58Test do
     # Zero is not in this alphabet
     assert_raise ArgumentError, fn -> B58.decode58_check!("0pLnBnyq1CfvAb", alphabet: :ripple) end
     # Underscore is not in this alphabet
-    assert_raise ArgumentError, fn -> B58.decode58_check!("1pLnBnyq1CfvAb_", alphabet: :ripple) end
+    assert_raise ArgumentError, fn ->
+      B58.decode58_check!("1pLnBnyq1CfvAb_", alphabet: :ripple)
+    end
+
     # Base64 alphabet is not compatible
     assert_raise ArgumentError, fn ->
       "Hello World"
       |> Base.encode64()
       |> B58.decode58_check!(alphabet: :ripple)
     end
+
     # missing bytes
     assert_raise ArgumentError, fn -> B58.decode58_check!("16hb6", alphabet: :ripple) end
     assert_raise ArgumentError, fn -> B58.decode58_check!(<<>>, alphabet: :ripple) end
@@ -1233,72 +1284,103 @@ defmodule B58Test do
     # Underscore is not in this alphabet
     {:error, _} = B58.decode58_check("1pLnBnyq1CfvAb_", alphabet: :ripple)
     # Base64 alphabet is not compatible
-    {:error, _} = "Hello World"
-                  |> Base.encode64()
-                  |> B58.decode58_check(alphabet: :ripple)
+    {:error, _} =
+      "Hello World"
+      |> Base.encode64()
+      |> B58.decode58_check(alphabet: :ripple)
+
     # missing bytes
     {:error, _} = B58.decode58_check("16hb6", alphabet: :ripple)
     {:error, _} = B58.decode58_check(<<>>, alphabet: :ripple)
   end
 
   test "version_decode58_check!/2 decodes Base58Check encoded binaries using the ripple alphabet" do
-    assert B58.version_decode58_check!("1pLnBnyq1CfvAb", alphabet: :ripple) == <<0, "hello">>
-    assert B58.version_decode58_check!("BnoSHny7DQS9XAzogicWP", alphabet: :ripple) == <<1, "hello world">>
-    assert B58.version_decode58_check!("YXMkDYBSTNWVuNpvQ6Qr8c", alphabet: :ripple) == <<255, "Hello World">>
-    assert B58.version_decode58_check!("1W6hb6", alphabet: :ripple) == <<0>>
+    assert B58.version_decode58_check!("rpLnBnyq1CfvAb", alphabet: :ripple) == <<0, "hello">>
+
+    assert B58.version_decode58_check!("BnoSHny7DQS9XAzogicWP", alphabet: :ripple) ==
+             <<1, "hello world">>
+
+    assert B58.version_decode58_check!("YXMkDYBSTNWVuNpvQ6Qr8c", alphabet: :ripple) ==
+             <<255, "Hello World">>
+
+    assert B58.version_decode58_check!("rW6hb6", alphabet: :ripple) == <<0>>
   end
 
   test "version_decode58_check/2 decodes Base58Check encoded binaries using the ripple alphabet" do
-    assert B58.version_decode58_check("1pLnBnyq1CfvAb", alphabet: :ripple) == {:ok, <<0, "hello">>}
-    assert B58.version_decode58_check("BnoSHny7DQS9XAzogicWP", alphabet: :ripple) == {:ok, <<1, "hello world">>}
-    assert B58.version_decode58_check("YXMkDYBSTNWVuNpvQ6Qr8c", alphabet: :ripple) == {:ok, <<255, "Hello World">>}
-    assert B58.version_decode58_check("1W6hb6", alphabet: :ripple) == {:ok, <<0>>}
+    assert B58.version_decode58_check("rpLnBnyq1CfvAb", alphabet: :ripple) ==
+             {:ok, <<0, "hello">>}
+
+    assert B58.version_decode58_check("BnoSHny7DQS9XAzogicWP", alphabet: :ripple) ==
+             {:ok, <<1, "hello world">>}
+
+    assert B58.version_decode58_check("YXMkDYBSTNWVuNpvQ6Qr8c", alphabet: :ripple) ==
+             {:ok, <<255, "Hello World">>}
+
+    assert B58.version_decode58_check("rW6hb6", alphabet: :ripple) == {:ok, <<0>>}
   end
 
   test "version_decode58_check!/2 Base58Check decodes to a versioned RIPEMD-160 encoded hash using the ripple alphabet" do
     # ex per: https://en.bitcoin.it/wiki/Technical_background_of_version_1_Bitcoin_addresses
-    assert "1PMyc2c8J2SqAAJqj2AXBNi8L1ZfRkX7w1"
+    assert "rPMyc2c8J2SqAAJqj2AXBNi8L1ZfRkX7w1"
            |> B58.version_decode58_check!(alphabet: :ripple)
-           |> :binary.decode_unsigned() == 0x0f54a5851e9372b87810a8e60cdd2e7cfd80b6e31
+           |> :binary.decode_unsigned() == 0x0F54A5851E9372B87810A8E60CDD2E7CFD80B6E31
   end
 
   test "version_decode58_check!/2 handles binaries with invalid checksums encoded using the ripple alphabet" do
-    #corrupt last byte
-    assert_raise ArgumentError, fn -> B58.version_decode58_check!("1pLnBnyq1CfvAv", alphabet: :ripple) end
-    #corrupt first byte
-    assert_raise ArgumentError, fn -> B58.version_decode58_check!("bpLnBnyq1CfvAb", alphabet: :ripple) end
-    #corrupt middle byte
-    assert_raise ArgumentError, fn -> B58.version_decode58_check!("1pLnBnqq1CfvAb", alphabet: :ripple) end
-    #corrupted empty
-    assert_raise ArgumentError, fn -> B58.version_decode58_check!("1W6bhb6", alphabet: :ripple) end
+    # corrupt last byte
+    assert_raise ArgumentError, fn ->
+      B58.version_decode58_check!("rpLnBnyq1CfvAv", alphabet: :ripple)
+    end
+
+    # corrupt first byte
+    assert_raise ArgumentError, fn ->
+      B58.version_decode58_check!("bpLnBnyq1CfvAb", alphabet: :ripple)
+    end
+
+    # corrupt middle byte
+    assert_raise ArgumentError, fn ->
+      B58.version_decode58_check!("rpLnBnqq1CfvAb", alphabet: :ripple)
+    end
+
+    # corrupted empty
+    assert_raise ArgumentError, fn ->
+      B58.version_decode58_check!("rW6bhb6", alphabet: :ripple)
+    end
   end
 
   test "version_decode58_check/2 handles binaries with invalid checksums encoded using the ripple alphabet" do
-    #corrupt last byte
-    {:error, _} = B58.version_decode58_check("1pLnBnyq1CfvAv", alphabet: :ripple)
-    #corrupt first byte
+    # corrupt last byte
+    {:error, _} = B58.version_decode58_check("rpLnBnyq1CfvAv", alphabet: :ripple)
+    # corrupt first byte
     {:error, _} = B58.version_decode58_check("bpLnBnyq1CfvAb", alphabet: :ripple)
-    #corrupt middle byte
-    {:error, _} = B58.version_decode58_check("1pLnBnqq1CfvAb", alphabet: :ripple)
-    #corrupted empty
-    {:error, _} = B58.version_decode58_check("1W6bhb6", alphabet: :ripple)
+    # corrupt middle byte
+    {:error, _} = B58.version_decode58_check("rpLnBnqq1CfvAb", alphabet: :ripple)
+    # corrupted empty
+    {:error, _} = B58.version_decode58_check("rW6bhb6", alphabet: :ripple)
   end
 
   # You, friend, are a reader
 
   test "version_decode58_check!/2 handles invalid binaries when using encoding using the ripple alphabet" do
     # Zero is not in this alphabet
-    assert_raise ArgumentError, fn -> B58.version_decode58_check!("0pLnBnyq1CfvAb", alphabet: :ripple) end
+    assert_raise ArgumentError, fn ->
+      B58.version_decode58_check!("0pLnBnyq1CfvAb", alphabet: :ripple)
+    end
+
     # Underscore is not in this alphabet
-    assert_raise ArgumentError, fn -> B58.version_decode58_check!("1pLnBnyq1CfvAb_", alphabet: :ripple) end
+    assert_raise ArgumentError, fn ->
+      B58.version_decode58_check!("rpLnBnyq1CfvAb_", alphabet: :ripple)
+    end
+
     # Base64 alphabet is not compatible
     assert_raise ArgumentError, fn ->
       "Hello World"
       |> Base.encode64()
       |> B58.version_decode58_check!(alphabet: :ripple)
     end
+
     # missing bytes
-    assert_raise ArgumentError, fn -> B58.version_decode58_check!("16hb6", alphabet: :ripple) end
+    assert_raise ArgumentError, fn -> B58.version_decode58_check!("r6hb6", alphabet: :ripple) end
     assert_raise ArgumentError, fn -> B58.version_decode58_check!(<<>>, alphabet: :ripple) end
   end
 
@@ -1306,13 +1388,15 @@ defmodule B58Test do
     # Zero is not in this alphabet
     {:error, _} = B58.version_decode58_check("0pLnBnyq1CfvAb", alphabet: :ripple)
     # Underscore is not in this alphabet
-    {:error, _} = B58.version_decode58_check("1pLnBnyq1CfvAb_", alphabet: :ripple)
+    {:error, _} = B58.version_decode58_check("rpLnBnyq1CfvAb_", alphabet: :ripple)
     # Base64 alphabet is not compatible
-    {:error, _} = "Hello World"
-                  |> Base.encode64()
-                  |> B58.version_decode58_check(alphabet: :ripple)
+    {:error, _} =
+      "Hello World"
+      |> Base.encode64()
+      |> B58.version_decode58_check(alphabet: :ripple)
+
     # missing bytes
-    {:error, _} = B58.version_decode58_check("16hb6", alphabet: :ripple)
+    {:error, _} = B58.version_decode58_check("r6hb6", alphabet: :ripple)
     {:error, _} = B58.version_decode58_check(<<>>, alphabet: :ripple)
   end
 
