@@ -619,19 +619,13 @@ defmodule B58 do
     end
   end
 
-  #===============================================================================
+  # ===============================================================================
   # Encoding
-  #===============================================================================
-  defp encode_prefix(<<0, rest::binary>>, acc) do
-    encode_prefix(rest, ['1' | acc])
-  end
-
-  defp encode_prefix(_bin, acc) do
-    acc
-  end
-
+  # ===============================================================================
   defp calculate_checksum(versioned_data) do
-    <<checksum::binary-size(4), _rest::binary>> = :crypto.hash(:sha256, :crypto.hash(:sha256, versioned_data))
+    <<checksum::binary-size(4), _rest::binary>> =
+      :crypto.hash(:sha256, :crypto.hash(:sha256, versioned_data))
+
     checksum
   end
 
@@ -643,6 +637,7 @@ defmodule B58 do
   for %{alphabet_id: alphabet_id, alphabet: alphabet} <- alphabet_meta do
     encode_body_fun = :"encode58_#{alphabet_id}_body"
     char_fun = :"encode58_#{alphabet_id}_char"
+    prefix_encode_fun = :"prefix_#{alphabet_id}_encode"
 
     defp unquote(char_fun)(value) do
       encode_char(unquote(alphabet), value)
@@ -656,9 +651,11 @@ defmodule B58 do
     # this code could be extracted, but with real benchmarks, emitting the same code seemed to perform a bit better than trying to have an extra call to produce a hot path
     # in the future might be worth a slight refactor + bench to see if this changes as new BEAM and Elixir versions are released
     defp do_encode58(data, unquote(alphabet_id)) do
-      prefix = encode_prefix(data, [])
-      body = :binary.decode_unsigned(data) |> unquote(encode_body_fun)([])
-      [prefix | body] |> to_string()
+      data
+      |> :binary.decode_unsigned()
+      |> unquote(encode_body_fun)([])
+      |> unquote(prefix_encode_fun)(data)
+      |> to_string()
     end
 
     defp unquote(encode_body_fun)(0, acc) do
@@ -671,32 +668,28 @@ defmodule B58 do
       unquote(encode_body_fun)(quotient, [char | acc])
     end
 
+    defp unquote(prefix_encode_fun)(encoded, <<0, rest::binary>>),
+      do: unquote(prefix_encode_fun)([unquote(char_fun)(0) | encoded], rest)
+
+    defp unquote(prefix_encode_fun)(encoded, _data), do: encoded
   end
 
-  #===============================================================================
+  # ===============================================================================
   # Decoding
-  #===============================================================================
-  defp decode_prefix(<<"1", rest::binary>>, acc) do
-    decode_prefix(rest, acc + 1)
-  end
-
-  defp decode_prefix(bin, acc) do
-    {bin, acc}
-  end
-
+  # ===============================================================================
   defp do_decode58(<<>>, _alphabet_id) do
     <<>>
   end
 
   defp do_decode58(string, alphabet_id) do
-    {remaining_string, leading_zeroes_count} = decode_prefix(string, 0)
-    body = decode_body(alphabet_id, to_charlist(remaining_string))
-    <<0::size(leading_zeroes_count)-unit(8), body::binary>>
+    decode_body(alphabet_id, string)
   end
 
   for %{alphabet_id: alphabet_id, alphabet: alphabet} <- alphabet_meta do
     decode_body_fun = :"decode58_#{alphabet_id}_body"
     char_fun = :"decode58_#{alphabet_id}_char"
+    decode_prefix_fun = :"decode58_#{alphabet_id}_prefix"
+    zero_char = Enum.at(alphabet, 0)
 
     defp unquote(char_fun)(value) do
       decode_char(unquote(alphabet), value)
@@ -707,18 +700,23 @@ defmodule B58 do
     end
 
     defp unquote(decode_body_fun)([char | remaining_chars], acc) do
-      unquote(decode_body_fun)(remaining_chars, (acc * 58) + unquote(char_fun)(char))
+      unquote(decode_body_fun)(remaining_chars, acc * 58 + unquote(char_fun)(char))
     end
 
-    defp decode_body(unquote(alphabet_id), []) do
-      <<>>
+    defp decode_body(unquote(alphabet_id), string) do
+      {remaining_string, leading_zeroes_count} = unquote(decode_prefix_fun)(string, 0)
+
+      body =
+        if remaining_string == <<>>,
+          do: <<>>,
+          else: unquote(decode_body_fun)(to_charlist(remaining_string), 0)
+
+      <<0::size(leading_zeroes_count)-unit(8), body::binary>>
     end
 
-    # we proxy this call first to pattern match *once*, not every iteration when recursively decoding
-    defp decode_body(unquote(alphabet_id), chars) do
-      unquote(decode_body_fun)(chars, 0)
-    end
+    defp unquote(decode_prefix_fun)(<<unquote(zero_char), rest::binary>>, acc),
+      do: unquote(decode_prefix_fun)(rest, acc + 1)
 
+    defp unquote(decode_prefix_fun)(bin, acc), do: {bin, acc}
   end
-
 end
